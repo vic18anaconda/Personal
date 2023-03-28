@@ -1,10 +1,13 @@
 //@ts-nocheck
-import React, { FormEvent, FormEventHandler, useReducer, useState } from 'react'
+import React, { FormEvent, FormEventHandler, useReducer, useState , useContext} from 'react'
 import useForm from '../../hooks/useForm.ts'
 import { EmployeeContext, employeeInitialState, Employee, EmployeeContextData } from '../../import/employeeContext.ts'
 import { authReducer } from '../../import/useReducer.ts'
 import EmployeeCard from '../Card/EmployeeCard.tsx'
 import PositionMenu from './PositionMenu.tsx'
+
+
+
 
 function EmployeeForm() {
     const [data, handleChange] = useForm<Employee>(employeeInitialState)    
@@ -12,18 +15,27 @@ function EmployeeForm() {
 
     const [finalData, dispatch] = useReducer(authReducer, employeeInitialState)
     const contextData: EmployeeContextData = { data, handleChange, locked:false }
+
+    const [isLocked, setIsLocked] = useState(false);
     
     const unlock = () =>{
         const payload = data
         dispatch({type: 'unlock', payload})
     }
-    const lock = () => dispatch({type: 'lock'})
+    const lock = () => {
+        dispatch({type: 'lock'})
+        setIsLocked(true); 
+    }
 
     const handleSubmit = (e: FormEventHandler<HTMLFormElement>) => {
         e.preventDefault();
         lock() || unlock()
         
     };
+
+    const lockMessage = isLocked ? "La tarjeta de empleado se ha generado y ya no puede ser editada." : null; 
+
+
     return(
         <EmployeeContext.Provider value = {contextData}>
             <form onSubmit={handleSubmit}>
@@ -74,7 +86,8 @@ function EmployeeForm() {
                     onChange={handleChange}
                 />
                 <button onClick={lock}>Bloquear tarjeta</button>
-                <button onClick={unlock}>Desloquear tarjeta</button>
+                <button onClick={unlock}>Desbloquear tarjeta</button>
+                {lockMessage} {/* Mensaje */}
             </form>
             <EmployeeCard/>
         </EmployeeContext.Provider>
