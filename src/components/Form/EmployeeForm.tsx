@@ -15,36 +15,61 @@ function EmployeeForm() {
 
     const [finalData, dispatch] = useReducer(authReducer, employeeInitialState)
     const contextData: EmployeeContextData = { data, handleChange, locked:false }
+    
 
     const [isLocked, setIsLocked] = useState(false);
     
     const unlock = () =>{
         const payload = data
         dispatch({type: 'unlock', payload})
+        setIsLocked(false);
+        
     }
+    
+    
     const lock = () => {
         dispatch({type: 'lock'})
         setIsLocked(true); 
-    }
-
-    const handleSubmit = (e: FormEventHandler<HTMLFormElement>) => {
-        e.preventDefault();
-        lock() || unlock()
         
+    }
+    
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+      
+        if (!isLocked) {
+          // Si la tarjeta no está bloqueada, permite la edición y luego bloquea la tarjeta
+          unlock();
+          lock();
+        } else {
+          // Si la tarjeta está bloqueada, muestra un mensaje de error
+          alert("La tarjeta de empleado está bloqueada y no se puede editar.");
+        }
     };
 
-    const lockMessage = isLocked ? "La tarjeta de empleado se ha generado y ya no puede ser editada." : null; 
+    
+
+    const lockMessage = isLocked ? "La tarjeta de empleado se ha generado y ya no puede ser editada." : "La tarjeta de empleado está desbloqueada y se puede editar.";
+    
+    const handleChangeLocked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!isLocked) {
+            handleChange(e);
+        }
+    } 
 
 
     return(
         <EmployeeContext.Provider value = {contextData}>
+            <div>
+                <p>{lockMessage}</p>
+            </div>
+            
             <form onSubmit={handleSubmit}>
                 <label> Nombre completo: 
                     <input
                         type='text'
                         name='fullname'
                         value={fullname}
-                        onChange={handleChange}
+                        onChange={handleChangeLocked}
                     />
                 </label>
                 <br/>
@@ -53,7 +78,7 @@ function EmployeeForm() {
                         type='date'
                         name='dob'
                         value={dob}
-                        onChange={handleChange}
+                        onChange={handleChangeLocked}
                     />
                 </label>
                 <br/>
@@ -64,7 +89,7 @@ function EmployeeForm() {
                         type='email'
                         name='email'
                         value={email}
-                        onChange={handleChange}
+                        onChange={handleChangeLocked}
                     />
                 </label>
                 <br/>
@@ -73,7 +98,7 @@ function EmployeeForm() {
                         type='tel'
                         name='phone'
                         value={phone}
-                        onChange={handleChange}
+                        onChange={handleChangeLocked}
                     />
                 </label>
                 <br/>
@@ -83,11 +108,11 @@ function EmployeeForm() {
                     accept="image/png, image/gif, image/jpeg"
                     name='photo'
                     
-                    onChange={handleChange}
+                    onChange={handleChangeLocked}
                 />
                 <button onClick={lock}>Bloquear tarjeta</button>
                 <button onClick={unlock}>Desbloquear tarjeta</button>
-                {lockMessage} {/* Mensaje */}
+                
             </form>
             <EmployeeCard/>
         </EmployeeContext.Provider>
