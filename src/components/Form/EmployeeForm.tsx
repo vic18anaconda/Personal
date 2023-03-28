@@ -17,10 +17,34 @@ function EmployeeForm() {
     const contextData: EmployeeContextData = { data, handleChange, locked:false }
     
 
-    const [isLocked, setIsLocked] = useState(false);
+    
+    const [phoneError, setPhoneError] = useState<string>('')
+    const [emailError, setEmailError] = useState<string>('')
+    const [isLocked, setIsLocked] = useState<boolean>(false)
+
+    const validate = () => {
+        let phoneErrorMsg = '';
+        let emailErrorMsg = '';
+      
+        if (!phone) {
+          phoneErrorMsg = 'El número de teléfono es obligatorio';
+        } else if (!/^\d{10}$/.test(phone)) {
+          phoneErrorMsg = 'El número de teléfono no es válido';
+        }
+      
+        if (!email) {
+          emailErrorMsg = 'La dirección de correo electrónico es obligatoria';
+        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+          emailErrorMsg = 'La dirección de correo electrónico no es válida';
+        }
+      
+        setPhoneError(phoneErrorMsg);
+        setEmailError(emailErrorMsg);
+    };
+      
     
     const unlock = () =>{
-        const payload = data
+        const payload = { ...data, locked: false };
         dispatch({type: 'unlock', payload})
         setIsLocked(false);
         
@@ -28,21 +52,36 @@ function EmployeeForm() {
     
     
     const lock = () => {
+
+        validate();
+        if (phoneError || emailError || !fullname || !dob || !position ) {
+            
+            return;
+        }
         dispatch({type: 'lock'})
         setIsLocked(true); 
+        
         
     }
     
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        validate();
+
+        if (phoneError || emailError || !fullname || !dob || !position ) {
+            alert("Por favor, complete todos los campos obligatorios y corrija cualquier error.");
+            return;
+        }
       
         if (!isLocked) {
-          // Si la tarjeta no está bloqueada, permite la edición y luego bloquea la tarjeta
+          
           unlock();
-          lock();
+          setIsLocked(false);
         } else {
-          // Si la tarjeta está bloqueada, muestra un mensaje de error
-          alert("La tarjeta de empleado está bloqueada y no se puede editar.");
+          
+            lock();
+            setIsLocked(true);
         }
     };
 
@@ -70,6 +109,7 @@ function EmployeeForm() {
                         name='fullname'
                         value={fullname}
                         onChange={handleChangeLocked}
+                        required
                     />
                 </label>
                 <br/>
@@ -79,18 +119,25 @@ function EmployeeForm() {
                         name='dob'
                         value={dob}
                         onChange={handleChangeLocked}
+                        required
                     />
                 </label>
                 <br/>
                 <PositionMenu/>
 
-                <label>E-mail:
-                    <input required='true'
+                <label>
+                    E-mail:
+                    <input 
+                        required='true'
                         type='email'
                         name='email'
                         value={email}
                         onChange={handleChangeLocked}
-                    />
+                        required
+                    /> 
+                    <br />
+                    <span style={{ color: "red" }}>{emailError}</span>
+                    
                 </label>
                 <br/>
                 <label>Telefono:
@@ -99,7 +146,12 @@ function EmployeeForm() {
                         name='phone'
                         value={phone}
                         onChange={handleChangeLocked}
-                    />
+                        required
+                    /><br/>
+                    <br />
+                    <span style={{ color: "red" }}>{phoneError}</span>
+                    
+                    
                 </label>
                 <br/>
                 Foro de perfil
@@ -107,6 +159,7 @@ function EmployeeForm() {
                     type='file'
                     accept="image/png, image/gif, image/jpeg"
                     name='photo'
+                    
                     
                     onChange={handleChangeLocked}
                 />
